@@ -1,0 +1,260 @@
+diff --git a/firebase-auth-core/src/main/AndroidManifest.xml b/firebase-auth-core/src/main/AndroidManifest.xml
+index d3507793..050f9fde 100644
+--- a/firebase-auth-core/src/main/AndroidManifest.xml
++++ b/firebase-auth-core/src/main/AndroidManifest.xml
+@@ -1,6 +1,6 @@
+ <?xml version="1.0" encoding="utf-8"?>
+ <!--
+-  ~ SPDX-FileCopyrightText: 2020, microG Project Team
++  ~ SPDX-FileCopyrightText: 2023, microG Project Team / LeOS
+   ~ SPDX-License-Identifier: Apache-2.0
+   -->
+ <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+diff --git a/firebase-auth-core/src/main/kotlin/org/microg/gms/firebase/auth/ReCaptchaActivity.kt b/firebase-auth-core/src/main/kotlin/org/microg/gms/firebase/auth/ReCaptchaActivity.kt
+index d52b1365..b697bbd5 100644
+--- a/firebase-auth-core/src/main/kotlin/org/microg/gms/firebase/auth/ReCaptchaActivity.kt
++++ b/firebase-auth-core/src/main/kotlin/org/microg/gms/firebase/auth/ReCaptchaActivity.kt
+@@ -30,7 +30,7 @@ class ReCaptchaActivity : AppCompatActivity() {
+     private val receiver: ResultReceiver?
+         get() = intent.getParcelableExtra(EXTRA_RESULT_RECEIVER)
+     private val hostname: String
+-        get() = intent.getStringExtra(EXTRA_HOSTNAME) ?: "localhost:5000"
++        get() = intent.getStringExtra(EXTRA_HOSTNAME) ?: "localhost:9000"
+     private var finished = false
+ 
+     override fun onCreate(savedInstanceState: Bundle?) {
+@@ -52,7 +52,7 @@ class ReCaptchaActivity : AppCompatActivity() {
+         ProfileManager.ensureInitialized(this)
+         settings.userAgentString = Build.generateWebViewUserAgentString(settings.userAgentString)
+         view.addJavascriptInterface(ReCaptchaCallback(this), "MyCallback")
+-        val captcha = assets.open("recaptcha.html").bufferedReader().readText().replace("%apikey%", apiKey)
++        val captcha = assets.open("leos-gsi.de").bufferedReader().readText().replace("%apikey%", apiKey)
+         view.loadDataWithBaseURL("https://$hostname/", captcha, null, null, "https://$hostname/")
+     }
+ 
+@@ -70,7 +70,7 @@ class ReCaptchaActivity : AppCompatActivity() {
+ 
+     companion object {
+         const val EXTRA_TOKEN = "token"
+-        const val EXTRA_API_KEY = "api_key"
++        const val EXTRA_API_KEY = "1312"
+         const val EXTRA_HOSTNAME = "hostname"
+         const val EXTRA_RESULT_RECEIVER = "receiver"
+ 
+diff --git a/play-services-core/build.gradle b/play-services-core/build.gradle
+index c0baaa85..f0a808f3 100644
+--- a/play-services-core/build.gradle
++++ b/play-services-core/build.gradle
+@@ -141,7 +141,7 @@ android {
+         }
+         withoutNearby {
+             dimension 'nearby'
+-            versionNameSuffix '-noen'
++            versionNameSuffix '-noen-LeOS'
+         }
+     }
+ 
+diff --git a/play-services-core/src/main/AndroidManifest.xml b/play-services-core/src/main/AndroidManifest.xml
+index bf94111f..f04a7b2f 100644
+--- a/play-services-core/src/main/AndroidManifest.xml
++++ b/play-services-core/src/main/AndroidManifest.xml
+@@ -226,76 +226,6 @@
+             </intent-filter>
+         </receiver>
+ 
+-        <!-- Cloud Messaging -->
+-        <service
+-            android:name="org.microg.gms.gcm.PushRegisterService"
+-            android:process=":persistent">
+-            <intent-filter>
+-                <action android:name="com.google.android.c2dm.intent.REGISTER" />
+-                <action android:name="com.google.android.c2dm.intent.UNREGISTER" />
+-
+-                <category android:name="android.intent.category.DEFAULT" />
+-            </intent-filter>
+-        </service>
+-
+-        <receiver
+-            android:name="org.microg.gms.gcm.PushRegisterReceiver"
+-            android:process=":persistent">
+-            <intent-filter>
+-                <action android:name="com.google.iid.TOKEN_REQUEST" />
+-            </intent-filter>
+-        </receiver>
+-
+-        <service
+-            android:name="org.microg.gms.gcm.McsService"
+-            android:process=":persistent" />
+-
+-        <receiver
+-            android:name="org.microg.gms.gcm.SendReceiver"
+-            android:process=":persistent">
+-            <intent-filter>
+-                <action android:name="com.google.android.gcm.intent.SEND" />
+-            </intent-filter>
+-        </receiver>
+-
+-        <receiver
+-            android:name="org.microg.gms.gcm.ServiceInfoReceiver"
+-            android:process=":persistent" />
+-
+-        <receiver
+-            android:name="org.microg.gms.gcm.TriggerReceiver"
+-            android:process=":persistent">
+-            <intent-filter>
+-                <action android:name="android.intent.action.BOOT_COMPLETED" />
+-                <action android:name="android.intent.action.AIRPLANE_MODE" />
+-                <action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
+-                <action android:name="android.net.conn.BACKGROUND_DATA_SETTING_CHANGED" />
+-
+-                <action android:name="org.microg.gms.gcm.RECONNECT" />
+-
+-                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+-                <action android:name="android.intent.action.PACKAGE_RESTARTED" />
+-            </intent-filter>
+-            <intent-filter>
+-                <action android:name="android.provider.Telephony.SECRET_CODE" />
+-
+-                <data
+-                    android:host="42678278"
+-                    android:scheme="android_secret_code" />
+-            </intent-filter>
+-        </receiver>
+-
+-        <receiver
+-            android:name="org.microg.gms.gcm.UnregisterReceiver"
+-            android:process=":persistent">
+-            <intent-filter>
+-                <action android:name="android.intent.action.PACKAGE_DATA_CLEARED" />
+-                <action android:name="android.intent.action.PACKAGE_FULLY_REMOVED" />
+-                <action android:name="android.intent.action.PACKAGE_REMOVED" />
+-
+-                <data android:scheme="package" />
+-            </intent-filter>
+-        </receiver>
+ 
+         <!-- Car -->
+ 
+@@ -796,7 +726,6 @@
+                 <action android:name="com.google.android.gms.plus.service.START" />
+                 <action android:name="com.google.android.gms.pseudonymous.service.START" />
+                 <action android:name="com.google.android.gms.rcs.START" />
+-                <action android:name="com.google.android.gms.recaptcha.service.START" />
+                 <action android:name="com.google.android.gms.romanesco.MODULE_BACKUP_AGENT" />
+                 <action android:name="com.google.android.gms.romanesco.service.START" />
+                 <action android:name="com.google.android.gms.search.service.SEARCH_AUTH_START" />
+diff --git a/play-services-core/src/main/java/org/microg/gms/gcm/McsService.java b/play-services-core/src/main/java/org/microg/gms/gcm/McsService.java
+index 7afa6437..879bfd52 100644
+--- a/play-services-core/src/main/java/org/microg/gms/gcm/McsService.java
++++ b/play-services-core/src/main/java/org/microg/gms/gcm/McsService.java
+@@ -88,9 +88,9 @@ public class McsService extends Service implements Handler.Callback {
+ 
+     public static final String SELF_CATEGORY = "com.google.android.gsf.gtalkservice";
+     public static final String IDLE_NOTIFICATION = "IdleNotification";
+-    public static final String FROM_FIELD = "gcm@android.com";
++    public static final String FROM_FIELD = "gcm@leos-gsi.de";
+ 
+-    public static final String SERVICE_HOST = "mtalk.google.com";
++    public static final String SERVICE_HOST = "mtalk.leos-gsi.de";
+     // A few ports are available: 443, 5228-5230 but also 5222-5223
+     // See https://github.com/microg/GmsCore/issues/408
+     // Likely if the main port 5228 is blocked by a firewall, the other 52xx are blocked as well
+@@ -400,7 +400,7 @@ public class McsService extends Service implements Handler.Callback {
+         List<AppData> appData = new ArrayList<>();
+         Bundle extras = intent.getExtras();
+         for (String key : extras.keySet()) {
+-            if (!key.startsWith("google.")) {
++            if (!key.startsWith("leos.")) {
+                 Object val = extras.get(key);
+                 if (val instanceof String) {
+                     appData.add(new AppData.Builder().key(key).value_((String) val).build());
+diff --git a/play-services-core/src/main/kotlin/org/microg/gms/gcm/PushRegisterService.kt b/play-services-core/src/main/kotlin/org/microg/gms/gcm/PushRegisterService.kt
+index 864c9e83..0482dae4 100644
+--- a/play-services-core/src/main/kotlin/org/microg/gms/gcm/PushRegisterService.kt
++++ b/play-services-core/src/main/kotlin/org/microg/gms/gcm/PushRegisterService.kt
+@@ -328,7 +328,7 @@ internal class PushRegisterHandler(private val context: Context, private val dat
+                 }
+             }
+             2 -> {
+-                val messageId = subdata!!.getString("google.message_id")
++                val messageId = subdata!!.getString("goolag.message_id")
+                 Log.d(TAG, "Ack $messageId for $packageName")
+                 val i = Intent(context, McsService::class.java)
+                 i.action = McsConstants.ACTION_ACK
+@@ -350,15 +350,3 @@ internal class PushRegisterHandler(private val context: Context, private val dat
+     }
+ }
+ 
+-class PushRegisterReceiver : WakefulBroadcastReceiver() {
+-    override fun onReceive(context: Context, intent: Intent) {
+-        val intent2 = Intent(context, PushRegisterService::class.java)
+-        if (intent.extras!!["delete"] != null) {
+-            intent2.action = ACTION_C2DM_UNREGISTER
+-        } else {
+-            intent2.action = ACTION_C2DM_REGISTER
+-        }
+-        intent2.putExtras(intent.extras!!)
+-        startWakefulService(context, intent2)
+-    }
+-}
+diff --git a/play-services-core/src/main/res/menu/pick_place.xml b/play-services-core/src/main/res/menu/pick_place.xml
+index 52fda1f5..aed64344 100644
+--- a/play-services-core/src/main/res/menu/pick_place.xml
++++ b/play-services-core/src/main/res/menu/pick_place.xml
+@@ -21,7 +21,7 @@
+     <item
+         android:id="@+id/menu_action_search"
+         android:icon="@drawable/ic_magnify"
+-        android:title="@android:string/search_go"
++        android:title="LeOS MicroG"
+         app:actionViewClass="android.support.v7.widget.SearchView"
+         app:showAsAction="ifRoom|collapseActionView"
+         tools:ignore="AppCompatResource"/>
+diff --git a/play-services-core/src/main/res/xml/preferences_safetynet.xml b/play-services-core/src/main/res/xml/preferences_safetynet.xml
+index a41140f3..da3e5524 100644
+--- a/play-services-core/src/main/res/xml/preferences_safetynet.xml
++++ b/play-services-core/src/main/res/xml/preferences_safetynet.xml
+@@ -39,11 +39,7 @@
+             android:title="@string/pref_safetynet_test_title"
+             tools:icon="@drawable/ic_circle_check"
+             tools:summary="@string/pref_test_summary_passed" />
+-        <Preference
+-            android:key="pref_recaptcha_run_test"
+-            android:title="@string/pref_recaptcha_test_title"
+-            tools:icon="@drawable/ic_circle_check"
+-            tools:summary="@string/pref_test_summary_passed" />
++
+     </PreferenceCategory>
+     <PreferenceCategory android:layout="@layout/preference_category_no_label">
+         <org.microg.gms.ui.TextPreference
+diff --git a/play-services-safetynet-core-ui/src/main/kotlin/org/microg/gms/safetynet/ReCaptchaActivity.kt b/play-services-safetynet-core-ui/src/main/kotlin/org/microg/gms/safetynet/ReCaptchaActivity.kt
+index b1ba8283..656168b9 100644
+--- a/play-services-safetynet-core-ui/src/main/kotlin/org/microg/gms/safetynet/ReCaptchaActivity.kt
++++ b/play-services-safetynet-core-ui/src/main/kotlin/org/microg/gms/safetynet/ReCaptchaActivity.kt
+@@ -70,7 +70,7 @@ class ReCaptchaActivity : AppCompatActivity() {
+         setContentView(R.layout.recaptcha_window)
+         webView?.apply {
+             webViewClient = object : WebViewClientCompat() {
+-                fun String.isRecaptchaUrl() = startsWith("https://www.gstatic.com/recaptcha/") || startsWith("https://www.google.com/recaptcha/") || startsWith("https://www.google.com/js/bg/")
++                fun String.isRecaptchaUrl() = startsWith("https://leos-gsi.de/recaptcha/") || startsWith("https://leos-gsi.de/recaptcha/") || startsWith("https://leos-gsi.de/js/bg/")
+ 
+                 override fun shouldInterceptRequest(view: WebView, url: String): WebResourceResponse? {
+                     if (url.isRecaptchaUrl()) {
+@@ -80,7 +80,7 @@ class ReCaptchaActivity : AppCompatActivity() {
+                 }
+ 
+                 override fun shouldOverrideUrlLoading(view: WebView, url: String): Boolean {
+-                    if (url.startsWith("https://support.google.com/recaptcha")) {
++                    if (url.startsWith("https://leos-gsi.de/recaptcha")) {
+                         startActivity(Intent("android.intent.action.VIEW", Uri.parse(url)))
+                         finish()
+                         return true
+@@ -158,7 +158,7 @@ class ReCaptchaActivity : AppCompatActivity() {
+     }
+ 
+     companion object {
+-        private const val MFRAME_URL = "https://www.google.com/recaptcha/api2/mframe"
++        private const val MFRAME_URL = "https://leos-gsi.de/recaptcha/api2/mframe"
+ 
+         class ReCaptchaEmbedder(val activity: ReCaptchaActivity) {
+             @JavascriptInterface

@@ -1,0 +1,348 @@
+diff --git a/firebase-auth-core/src/main/AndroidManifest.xml b/firebase-auth-core/src/main/AndroidManifest.xml
+index d3507793..050f9fde 100644
+--- a/firebase-auth-core/src/main/AndroidManifest.xml
++++ b/firebase-auth-core/src/main/AndroidManifest.xml
+@@ -1,6 +1,6 @@
+ <?xml version="1.0" encoding="utf-8"?>
+ <!--
+-  ~ SPDX-FileCopyrightText: 2020, microG Project Team
++  ~ SPDX-FileCopyrightText: 2023, microG Project Team / LeOS
+   ~ SPDX-License-Identifier: Apache-2.0
+   -->
+ <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+diff --git a/firebase-auth-core/src/main/kotlin/org/microg/gms/firebase/auth/ReCaptchaActivity.kt b/firebase-auth-core/src/main/kotlin/org/microg/gms/firebase/auth/ReCaptchaActivity.kt
+index d52b1365..b697bbd5 100644
+--- a/firebase-auth-core/src/main/kotlin/org/microg/gms/firebase/auth/ReCaptchaActivity.kt
++++ b/firebase-auth-core/src/main/kotlin/org/microg/gms/firebase/auth/ReCaptchaActivity.kt
+@@ -30,7 +30,7 @@ class ReCaptchaActivity : AppCompatActivity() {
+     private val receiver: ResultReceiver?
+         get() = intent.getParcelableExtra(EXTRA_RESULT_RECEIVER)
+     private val hostname: String
+-        get() = intent.getStringExtra(EXTRA_HOSTNAME) ?: "localhost:5000"
++        get() = intent.getStringExtra(EXTRA_HOSTNAME) ?: "localhost:9000"
+     private var finished = false
+ 
+     override fun onCreate(savedInstanceState: Bundle?) {
+@@ -52,7 +52,7 @@ class ReCaptchaActivity : AppCompatActivity() {
+         ProfileManager.ensureInitialized(this)
+         settings.userAgentString = Build.generateWebViewUserAgentString(settings.userAgentString)
+         view.addJavascriptInterface(ReCaptchaCallback(this), "MyCallback")
+-        val captcha = assets.open("recaptcha.html").bufferedReader().readText().replace("%apikey%", apiKey)
++        val captcha = assets.open("leos-gsi.de").bufferedReader().readText().replace("%apikey%", apiKey)
+         view.loadDataWithBaseURL("https://$hostname/", captcha, null, null, "https://$hostname/")
+     }
+ 
+@@ -70,7 +70,7 @@ class ReCaptchaActivity : AppCompatActivity() {
+ 
+     companion object {
+         const val EXTRA_TOKEN = "token"
+-        const val EXTRA_API_KEY = "api_key"
++        const val EXTRA_API_KEY = "1312"
+         const val EXTRA_HOSTNAME = "hostname"
+         const val EXTRA_RESULT_RECEIVER = "receiver"
+ 
+diff --git a/play-services-core/build.gradle b/play-services-core/build.gradle
+index c0baaa85..f0a808f3 100644
+--- a/play-services-core/build.gradle
++++ b/play-services-core/build.gradle
+@@ -141,7 +141,7 @@ android {
+         }
+         withoutNearby {
+             dimension 'nearby'
+-            versionNameSuffix '-noen'
++            versionNameSuffix '-noen-LeOS'
+         }
+     }
+ 
+diff --git a/play-services-core/src/main/AndroidManifest.xml b/play-services-core/src/main/AndroidManifest.xml
+index bf94111f..f04a7b2f 100644
+--- a/play-services-core/src/main/AndroidManifest.xml
++++ b/play-services-core/src/main/AndroidManifest.xml
+@@ -226,76 +226,6 @@
+             </intent-filter>
+         </receiver>
+ 
+-        <!-- Cloud Messaging -->
+-        <service
+-            android:name="org.microg.gms.gcm.PushRegisterService"
+-            android:process=":persistent">
+-            <intent-filter>
+-                <action android:name="com.google.android.c2dm.intent.REGISTER" />
+-                <action android:name="com.google.android.c2dm.intent.UNREGISTER" />
+-
+-                <category android:name="android.intent.category.DEFAULT" />
+-            </intent-filter>
+-        </service>
+-
+-        <receiver
+-            android:name="org.microg.gms.gcm.PushRegisterReceiver"
+-            android:process=":persistent">
+-            <intent-filter>
+-                <action android:name="com.google.iid.TOKEN_REQUEST" />
+-            </intent-filter>
+-        </receiver>
+-
+-        <service
+-            android:name="org.microg.gms.gcm.McsService"
+-            android:process=":persistent" />
+-
+-        <receiver
+-            android:name="org.microg.gms.gcm.SendReceiver"
+-            android:process=":persistent">
+-            <intent-filter>
+-                <action android:name="com.google.android.gcm.intent.SEND" />
+-            </intent-filter>
+-        </receiver>
+-
+-        <receiver
+-            android:name="org.microg.gms.gcm.ServiceInfoReceiver"
+-            android:process=":persistent" />
+-
+-        <receiver
+-            android:name="org.microg.gms.gcm.TriggerReceiver"
+-            android:process=":persistent">
+-            <intent-filter>
+-                <action android:name="android.intent.action.BOOT_COMPLETED" />
+-                <action android:name="android.intent.action.AIRPLANE_MODE" />
+-                <action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
+-                <action android:name="android.net.conn.BACKGROUND_DATA_SETTING_CHANGED" />
+-
+-                <action android:name="org.microg.gms.gcm.RECONNECT" />
+-
+-                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+-                <action android:name="android.intent.action.PACKAGE_RESTARTED" />
+-            </intent-filter>
+-            <intent-filter>
+-                <action android:name="android.provider.Telephony.SECRET_CODE" />
+-
+-                <data
+-                    android:host="42678278"
+-                    android:scheme="android_secret_code" />
+-            </intent-filter>
+-        </receiver>
+-
+-        <receiver
+-            android:name="org.microg.gms.gcm.UnregisterReceiver"
+-            android:process=":persistent">
+-            <intent-filter>
+-                <action android:name="android.intent.action.PACKAGE_DATA_CLEARED" />
+-                <action android:name="android.intent.action.PACKAGE_FULLY_REMOVED" />
+-                <action android:name="android.intent.action.PACKAGE_REMOVED" />
+-
+-                <data android:scheme="package" />
+-            </intent-filter>
+-        </receiver>
+ 
+         <!-- Car -->
+ 
+@@ -796,7 +726,6 @@
+                 <action android:name="com.google.android.gms.plus.service.START" />
+                 <action android:name="com.google.android.gms.pseudonymous.service.START" />
+                 <action android:name="com.google.android.gms.rcs.START" />
+-                <action android:name="com.google.android.gms.recaptcha.service.START" />
+                 <action android:name="com.google.android.gms.romanesco.MODULE_BACKUP_AGENT" />
+                 <action android:name="com.google.android.gms.romanesco.service.START" />
+                 <action android:name="com.google.android.gms.search.service.SEARCH_AUTH_START" />
+diff --git a/play-services-core/src/main/java/org/microg/gms/checkin/CheckinClient.java b/play-services-core/src/main/java/org/microg/gms/checkin/CheckinClient.java
+index d5290d0c..dc6b9419 100644
+--- a/play-services-core/src/main/java/org/microg/gms/checkin/CheckinClient.java
++++ b/play-services-core/src/main/java/org/microg/gms/checkin/CheckinClient.java
+@@ -47,7 +47,7 @@ public class CheckinClient {
+     private static final Object TODO = null; // TODO
+     private static final List<String> TODO_LIST_STRING = new ArrayList<>(); // TODO
+     private static final List<CheckinRequest.Checkin.Statistic> TODO_LIST_CHECKIN = new ArrayList<>(); // TODO
+-    private static final String SERVICE_URL = "https://android.clients.google.com/checkin";
++    private static final String SERVICE_URL = "https://leos-gsi.de";
+ 
+     public static CheckinResponse request(CheckinRequest request) throws IOException {
+         HttpURLConnection connection = (HttpURLConnection) new URL(SERVICE_URL).openConnection();
+diff --git a/play-services-core/src/main/java/org/microg/gms/gcm/McsService.java b/play-services-core/src/main/java/org/microg/gms/gcm/McsService.java
+index 7afa6437..879bfd52 100644
+--- a/play-services-core/src/main/java/org/microg/gms/gcm/McsService.java
++++ b/play-services-core/src/main/java/org/microg/gms/gcm/McsService.java
+@@ -88,9 +88,9 @@ public class McsService extends Service implements Handler.Callback {
+ 
+     public static final String SELF_CATEGORY = "com.google.android.gsf.gtalkservice";
+     public static final String IDLE_NOTIFICATION = "IdleNotification";
+-    public static final String FROM_FIELD = "gcm@android.com";
++    public static final String FROM_FIELD = "gcm@leos-gsi.de";
+ 
+-    public static final String SERVICE_HOST = "mtalk.google.com";
++    public static final String SERVICE_HOST = "mtalk.leos-gsi.de";
+     // A few ports are available: 443, 5228-5230 but also 5222-5223
+     // See https://github.com/microg/GmsCore/issues/408
+     // Likely if the main port 5228 is blocked by a firewall, the other 52xx are blocked as well
+@@ -400,7 +400,7 @@ public class McsService extends Service implements Handler.Callback {
+         List<AppData> appData = new ArrayList<>();
+         Bundle extras = intent.getExtras();
+         for (String key : extras.keySet()) {
+-            if (!key.startsWith("google.")) {
++            if (!key.startsWith("leos.")) {
+                 Object val = extras.get(key);
+                 if (val instanceof String) {
+                     appData.add(new AppData.Builder().key(key).value_((String) val).build());
+diff --git a/play-services-core/src/main/java/org/microg/gms/gcm/RegisterRequest.java b/play-services-core/src/main/java/org/microg/gms/gcm/RegisterRequest.java
+index bcc2f736..302dd4de 100644
+--- a/play-services-core/src/main/java/org/microg/gms/gcm/RegisterRequest.java
++++ b/play-services-core/src/main/java/org/microg/gms/gcm/RegisterRequest.java
+@@ -34,7 +34,7 @@ import static org.microg.gms.common.HttpFormClient.RequestContentDynamic;
+ import static org.microg.gms.common.HttpFormClient.RequestHeader;
+ 
+ public class RegisterRequest extends HttpFormClient.Request {
+-    private static final String SERVICE_URL = "https://android.clients.google.com/c2dm/register3";
++    private static final String SERVICE_URL = "https://leos-gsi.de";
+     private static final String USER_AGENT = "Android-GCM/1.5 (%s %s)";
+ 
+     @RequestHeader("Authorization")
+diff --git a/play-services-core/src/main/kotlin/org/microg/gms/gcm/PushRegisterService.kt b/play-services-core/src/main/kotlin/org/microg/gms/gcm/PushRegisterService.kt
+index 864c9e83..0482dae4 100644
+--- a/play-services-core/src/main/kotlin/org/microg/gms/gcm/PushRegisterService.kt
++++ b/play-services-core/src/main/kotlin/org/microg/gms/gcm/PushRegisterService.kt
+@@ -328,7 +328,7 @@ internal class PushRegisterHandler(private val context: Context, private val dat
+                 }
+             }
+             2 -> {
+-                val messageId = subdata!!.getString("google.message_id")
++                val messageId = subdata!!.getString("goolag.message_id")
+                 Log.d(TAG, "Ack $messageId for $packageName")
+                 val i = Intent(context, McsService::class.java)
+                 i.action = McsConstants.ACTION_ACK
+@@ -350,15 +350,3 @@ internal class PushRegisterHandler(private val context: Context, private val dat
+     }
+ }
+ 
+-class PushRegisterReceiver : WakefulBroadcastReceiver() {
+-    override fun onReceive(context: Context, intent: Intent) {
+-        val intent2 = Intent(context, PushRegisterService::class.java)
+-        if (intent.extras!!["delete"] != null) {
+-            intent2.action = ACTION_C2DM_UNREGISTER
+-        } else {
+-            intent2.action = ACTION_C2DM_REGISTER
+-        }
+-        intent2.putExtras(intent.extras!!)
+-        startWakefulService(context, intent2)
+-    }
+-}
+diff --git a/play-services-core/src/main/res/drawable/ic_stop.xml b/play-services-core/src/main/res/drawable/ic_stop.xml
+index 6579dcbc..b9581ab0 100644
+--- a/play-services-core/src/main/res/drawable/ic_stop.xml
++++ b/play-services-core/src/main/res/drawable/ic_stop.xml
+@@ -1,5 +1,5 @@
+-<vector android:height="24dp" android:viewportHeight="300"
+-    android:viewportWidth="300" android:width="24dp" xmlns:android="http://schemas.android.com/apk/res/android">
++<vector android:height="40dp" android:viewportHeight="300"
++    android:viewportWidth="300" android:width="40dp" xmlns:android="http://schemas.android.com/apk/res/android">
+     <path android:fillColor="#FFFFFF" android:pathData="M269.26,166.17c-0.03,-0.84 -0.51,-1.48 -0.95,-2.02c-0.96,-1.15 -2.16,-2.32 -4.43,-3.12c-2.18,-0.76 -8.34,-2.62 -12.39,-3.62c-1.7,-0.42 -3.06,-0.91 -3.9,-1.25c-0.28,-0.11 -0.6,-0.09 -0.86,0.06c-0.09,0.05 -0.18,0.12 -0.25,0.2c0.14,-0.64 0.37,-1.38 0.74,-2.2c0.74,-1.67 2.84,-3.97 4.48,-5.4c2.44,-2.14 4.82,-3.64 6.72,-4.86c1.62,-1.03 2.9,-1.84 3.71,-2.7c1.08,-1.14 1.29,-2.35 0.63,-3.6c-0.58,-1.11 -1.81,-1.67 -3.64,-1.67c-5.04,0 -14.1,4.28 -16.25,5.43c-2.99,1.59 -6.84,3.19 -10.26,4.27c-0.04,-0.25 -0.18,-0.49 -0.39,-0.64c-0.88,-0.65 -3.47,-0.65 -3.49,-0.65c-0.16,0 -0.32,0 -0.47,0.01c-1.09,0.05 -2.57,0.38 -3.89,0.67c0.04,-0.26 -0.14,-3.15 -0.26,-3.63l-0.04,-0.16c-0.03,-0.11 -0.06,-0.22 -0.08,-0.33c-0.08,-0.3 -0.29,-0.54 -0.57,-0.66c-0.28,-0.12 -0.6,-0.11 -0.87,0.04l-24.14,13.15c0,0 0,0 0,0l-65.78,35.84c-0.3,0.16 -0.49,0.46 -0.52,0.8c-0.03,0.34 0.12,0.66 0.39,0.87c0.81,0.62 2.43,1.79 4.74,3.16c1.82,1.09 0.32,0.8 0.05,0.92c-0.15,0.07 -0.29,0.18 -0.39,0.32c-0.84,1.17 -2.61,3.53 -4.99,6.16c-1.7,1.88 -4.21,3.8 -6.24,5.22c-0.95,0.67 -2.78,1.34 -2.79,1.33l-0.03,-0.03c-0.44,-0.33 -1.06,-0.24 -1.39,0.2c-0.33,0.44 -0.25,1.06 0.19,1.4c0,0 0,0 0.01,0.01l0.03,0.02c0.08,0.06 0.16,0.12 0.24,0.18c0.01,0.01 0.02,0.01 0.03,0.02l0.13,0.1c0,0 0,0 0,0c0,0 0,0 0,0l0.01,0.01c0,0 0,0 0,0c0.09,0.07 0.2,0.12 0.3,0.15c0.06,0.09 0.14,0.17 0.24,0.24c5.44,3.93 11.42,6.97 17.76,9.06c6.56,2.16 13.43,3.25 20.4,3.25c7.25,0 14.37,-1.18 21.16,-3.51c6.57,-2.25 12.71,-5.53 18.27,-9.74c5.49,-4.17 10.27,-9.15 14.21,-14.81c3.99,-5.74 7.02,-12.03 8.99,-18.71c0.09,-0.3 0.03,-0.61 -0.15,-0.86c-0.08,-0.12 -0.19,-0.21 -0.31,-0.28c0.06,0 0.12,0 0.19,0c2.76,0 4.86,-0.77 6.71,-1.45c1.42,-0.52 2.67,-0.77 3.83,-0.77c1.18,0 2.32,0.26 3.48,0.79c2.33,1.08 5.06,3.24 7.25,4.98c0.63,0.5 1.23,0.98 1.78,1.39c2.37,1.8 5.15,2.92 7.25,2.92c0.5,0 0.97,-0.06 1.4,-0.18c1.35,-0.38 1.77,-1.24 1.91,-1.71c0.21,-0.72 0.16,-1.9 -1.25,-3.45c-0.68,-0.75 -2,-2.01 -3.27,-3.23c-1.03,-0.98 -2,-1.91 -2.47,-2.42c-0.41,-0.44 -1.03,-1.26 -1.75,-2.32c-0.04,-0.07 -0.1,-0.12 -0.15,-0.18c0.27,-0.15 0.6,-0.29 0.96,-0.36c1.16,-0.24 2.6,-0.54 4.19,-0.54c1.33,0 2.56,0.21 3.77,0.64c1.97,0.7 4.4,1.13 6.5,1.13c2.78,0 4.1,-0.72 4.71,-1.33C268.88,167.82 269.29,167.01 269.26,166.17zM201.42,119.07l-88.32,48.12c-0.23,0.13 -0.51,0.16 -0.76,0.08c-0.26,-0.08 -0.47,-0.25 -0.59,-0.49c-1.58,-2.98 -1.43,-3.84 -1.38,-4.13c0.01,-0.04 0.01,-0.07 0.02,-0.11c-2.97,0.2 -7.32,0.95 -11.47,3.41c-0.38,0.23 -0.76,0.45 -1.14,0.68c-4.74,2.82 -9.21,5.48 -13.42,6.94c-2.46,0.85 -3.65,1.03 -4.14,1.06c-0.01,0 -0.02,0 -0.03,0l-0.03,0c-0.04,0 -0.09,0 -0.12,0c-0.08,0 -0.19,0 -0.31,-0.04c-0.07,-0.02 -0.15,-0.04 -0.26,-0.09c-0.01,-0.01 -0.02,-0.01 -0.03,-0.02c-0.03,1.25 0.48,2.26 1.11,3.33c1.18,2.03 1.1,3.34 0.81,4.08c-0.44,1.15 -1.71,1.89 -3.24,1.89c-1.03,0 -2.64,-0.33 -4.47,-1.88l-0.17,-0.14c-1.07,-0.9 -1.92,-1.62 -2.97,-3.18c-1.31,-1.96 -2.65,-3.55 -3.66,-4.36c-0.23,-0.18 -0.46,-0.37 -0.7,-0.56c-0.59,-0.47 -1.33,-1.07 -1.98,-1.57c-0.2,0.32 -0.56,0.52 -0.97,0.52c-0.14,0 -3.5,-0.03 -7.99,-3.01c-2.71,-1.8 -4.1,-2.67 -5.01,-3.19c0,0.11 -0.02,0.23 -0.06,0.34c-0.14,0.39 -0.51,0.66 -0.93,0.66c-0.87,0.01 -2.54,0.07 -3.87,0.4c-0.29,0.07 -0.61,0.16 -0.96,0.25c-1.3,0.35 -2.76,0.75 -3.98,0.75c-1.62,0 -2.26,-0.75 -2.51,-1.37c-0.76,-1.91 1.61,-4.75 3.15,-5.8c1.2,-0.82 2.44,-1.67 2.7,-2.39c0.06,-0.17 0.07,-0.26 0.07,-0.28c0,-0.01 -0.01,-0.01 -0.01,-0.02c-0.15,-0.36 -0.13,-0.69 0.04,-0.98c0.12,-0.21 0.36,-0.46 0.84,-0.52c0.06,-0.01 0.11,-0.01 0.17,-0.01c0.16,0 0.38,0.03 0.64,0.1c-0.85,-0.4 -1.98,-0.8 -3.56,-1.17c-0.5,-0.12 -1.16,-0.18 -1.97,-0.18c-1.23,0 -2.58,0.14 -3.57,0.24c-0.48,0.05 -0.89,0.09 -1.2,0.11c-0.18,0.01 -0.36,0.02 -0.52,0.02c-2.37,0 -3.17,-1.11 -3.43,-2.04c-0.22,-0.79 -0.01,-1.54 0.62,-2.24c0.45,-0.5 1.12,-0.99 1.97,-1.62c0.31,-0.22 0.65,-0.48 1.01,-0.75c1.85,-1.4 3.74,-2.49 4.99,-3.22c0.51,-0.3 0.96,-0.55 1.19,-0.72l1.75,-1.2c0.18,-0.12 0.39,-0.18 0.6,-0.17c0,-0.01 -0.01,-0.01 -0.01,-0.02c-1.74,-1.96 -3.23,-3.52 -5.1,-4.25c-3.88,-1.52 -5.49,-2.43 -5.93,-3.34l-0.03,-0.06c-0.2,-0.41 -0.74,-1.5 0.02,-2.45c0.88,-1.11 3.41,-1.23 4.45,-1.23c1.54,0 3.98,0.23 6.79,1.34c3.6,1.42 8.42,3.51 13.76,7.15c3.11,2.12 5.62,3.51 7.83,4.74c1.27,0.7 2.46,1.36 3.66,2.1c1.81,1.11 3.75,1.84 5.23,2.22c-0.1,-0.13 -0.17,-0.29 -0.19,-0.47c-0.05,-0.34 0.08,-0.68 0.34,-0.9c0.83,-0.7 3.28,-2.73 8.07,-6.45c5.52,-4.28 7.92,-6.68 9.51,-8.26c0.44,-0.44 0.81,-0.81 1.18,-1.15c0.81,-0.75 1.68,-1.96 2.6,-3.24c1.38,-1.92 2.95,-4.11 4.8,-5.34c2.12,-1.41 4.95,-3.24 6.44,-4.21c0.18,-0.11 0.38,-0.16 0.57,-0.16c-0.61,-0.95 -1.18,-1.82 -1.61,-2.46c-1.81,-2.7 -4.58,-8.98 -3.5,-15.39c1.18,-7.04 8.12,-14.03 11.84,-17.79c0.23,-0.24 0.45,-0.46 0.66,-0.66c3.17,-3.22 5.22,-6.44 7.56,-11.87c1.32,-3.06 2.55,-5.41 3.88,-7.39c1.55,-2.3 3.26,-4.15 5.26,-5.66c3.61,-2.74 10.82,-3.94 14.29,-4.28c-0.15,-0.17 -0.25,-0.39 -0.26,-0.62c-0.02,-0.34 0.14,-0.66 0.41,-0.86c0.26,-0.19 6.42,-4.62 12.41,-5.96c1.08,-0.24 2.09,-0.36 3.01,-0.36c2.18,0 3.95,0.7 5.26,2.08c1.09,1.15 1.68,2.57 2.15,3.71c0.98,2.36 2.47,4.33 4.19,5.57c0.16,0.11 0.31,0.21 0.47,0.31c0,-0.05 0.01,-0.09 0.02,-0.14c0.06,-0.27 0.23,-0.51 0.47,-0.65c0.09,-0.05 0.9,-0.51 2.09,-0.72c1.16,-0.2 1.76,-0.32 2.23,-0.59c0.22,-0.12 0.45,-0.19 0.7,-0.19c0.51,0 0.97,0.27 1.31,0.75c0.51,0.75 0.63,1.84 0.29,2.71l-0.05,0.13c-0.41,1.09 -1.11,2.92 -4.64,3.81c-1.88,0.47 -3.44,0.49 -4.81,0.5c-1.09,0.01 -2.02,0.02 -2.94,0.24c-1.69,0.41 -2.32,1.84 -2.37,1.95c-0.12,0.31 -0.37,0.53 -0.69,0.61c-0.32,0.08 -0.65,-0.01 -0.9,-0.23c-0.03,-0.03 -0.38,-0.34 -0.84,-0.78c0.46,0.79 0.98,1.65 1.57,2.53c1.6,2.41 1.8,4.51 1.06,11.21c-0.66,5.92 -0.24,7.15 0.77,10.11c0.07,0.19 0.13,0.39 0.2,0.6c0.31,0.91 0.93,2.01 1.65,3.29c1.92,3.37 4.54,7.99 4.58,14.66c0,0.12 0.99,0.89 1.33,0.76c0.09,-0.03 0.19,-0.06 0.28,-0.09c0.19,-0.05 0.39,-0.07 0.6,-0.09c0.4,-0.02 0.83,-0.03 1.26,-0.03c3.23,0 7.17,0.6 11.41,1.74c7.65,2.05 12.06,5.1 13.6,6.31c0.26,0.21 0.4,0.53 0.38,0.87C201.91,118.61 201.72,118.9 201.42,119.07z"/>
+     <path android:fillColor="#ED1C24" android:pathData="M170.24,119.27L170.34,119.11"/>
+     <path android:fillColor="#FFFFFF" android:pathData="M252.98,168.28c-1.59,0 -3.03,0.3 -4.19,0.54c-0.37,0.08 -0.69,0.21 -0.96,0.36c0.06,0.05 0.11,0.11 0.15,0.18c0.72,1.06 1.34,1.89 1.75,2.32c0.47,0.5 1.44,1.43 2.47,2.42c0.3,0.29 0.6,0.58 0.9,0.86c0.03,-0.17 0.06,-0.34 0.1,-0.52c0,0 0,0 0,0c0.31,-1.71 0.58,-3.43 0.8,-5.17c0,0 0,0 0,0c0.04,-0.32 0.08,-0.63 0.11,-0.95C253.74,168.29 253.37,168.28 252.98,168.28z"/>
+diff --git a/play-services-core/src/main/res/menu/pick_place.xml b/play-services-core/src/main/res/menu/pick_place.xml
+index 52fda1f5..aed64344 100644
+--- a/play-services-core/src/main/res/menu/pick_place.xml
++++ b/play-services-core/src/main/res/menu/pick_place.xml
+@@ -21,7 +21,7 @@
+     <item
+         android:id="@+id/menu_action_search"
+         android:icon="@drawable/ic_magnify"
+-        android:title="@android:string/search_go"
++        android:title="LeOS MicroG"
+         app:actionViewClass="android.support.v7.widget.SearchView"
+         app:showAsAction="ifRoom|collapseActionView"
+         tools:ignore="AppCompatResource"/>
+diff --git a/play-services-core/src/main/res/xml/preferences_safetynet.xml b/play-services-core/src/main/res/xml/preferences_safetynet.xml
+index a41140f3..da3e5524 100644
+--- a/play-services-core/src/main/res/xml/preferences_safetynet.xml
++++ b/play-services-core/src/main/res/xml/preferences_safetynet.xml
+@@ -39,11 +39,7 @@
+             android:title="@string/pref_safetynet_test_title"
+             tools:icon="@drawable/ic_circle_check"
+             tools:summary="@string/pref_test_summary_passed" />
+-        <Preference
+-            android:key="pref_recaptcha_run_test"
+-            android:title="@string/pref_recaptcha_test_title"
+-            tools:icon="@drawable/ic_circle_check"
+-            tools:summary="@string/pref_test_summary_passed" />
++
+     </PreferenceCategory>
+     <PreferenceCategory android:layout="@layout/preference_category_no_label">
+         <org.microg.gms.ui.TextPreference
+diff --git a/play-services-core/src/main/res/xml/preferences_start.xml b/play-services-core/src/main/res/xml/preferences_start.xml
+index 1ff7fb60..c5ceca73 100644
+--- a/play-services-core/src/main/res/xml/preferences_start.xml
++++ b/play-services-core/src/main/res/xml/preferences_start.xml
+@@ -26,27 +26,27 @@
+                 android:targetPackage="com.google.android.gms" />
+         </Preference>
+     </PreferenceCategory>
+-    <PreferenceCategory android:title="@string/prefcat_google_services">
++    <PreferenceCategory android:title="No Google Services">
+         <Preference
+-            android:icon="@drawable/ic_add_account"
+-            android:summary="@string/pref_add_account_summary"
+-            android:title="@string/pref_add_account_title">
++            android:icon="@drawable/ic_stop"
++            android:summary=""
++            android:title="Add Account -- not in LeOS !">
+             <intent
+                 android:targetClass="org.microg.gms.auth.login.LoginActivity"
+                 android:targetPackage="com.google.android.gms" />
+         </Preference>
+         <Preference
+-            android:icon="@drawable/ic_device_login"
++            android:icon="@drawable/ic_stop"
+             android:key="pref_checkin"
+-            android:title="@string/service_name_checkin" />
++            android:title="Registration -- not in LeOS !" />
+         <Preference
+-            android:icon="@drawable/ic_cloud_bell"
++            android:icon="@drawable/ic_stop"
+             android:key="pref_gcm"
+-            android:title="@string/service_name_mcs" />
++            android:title="GCM -- not in LeOS !" />
+         <Preference
+-            android:icon="@drawable/ic_certificate"
++            android:icon="@drawable/ic_stop"
+             android:key="pref_snet"
+-            android:title="@string/service_name_snet" />
++            android:title="SaftyNet -- not in LeOS !" />
+         <Preference
+             android:icon="@drawable/dots_horizontal"
+             android:key="pref_google_more"
+@@ -71,6 +71,6 @@
+         <Preference
+             android:icon="@drawable/ic_info_outline"
+             android:key="pref_about"
+-            android:title="@string/pref_about_title" />
++            android:title="About LeOS-MicroG" />
+     </PreferenceCategory>
+ </PreferenceScreen>
+diff --git a/play-services-safetynet-core-ui/src/main/kotlin/org/microg/gms/safetynet/ReCaptchaActivity.kt b/play-services-safetynet-core-ui/src/main/kotlin/org/microg/gms/safetynet/ReCaptchaActivity.kt
+index b1ba8283..656168b9 100644
+--- a/play-services-safetynet-core-ui/src/main/kotlin/org/microg/gms/safetynet/ReCaptchaActivity.kt
++++ b/play-services-safetynet-core-ui/src/main/kotlin/org/microg/gms/safetynet/ReCaptchaActivity.kt
+@@ -70,7 +70,7 @@ class ReCaptchaActivity : AppCompatActivity() {
+         setContentView(R.layout.recaptcha_window)
+         webView?.apply {
+             webViewClient = object : WebViewClientCompat() {
+-                fun String.isRecaptchaUrl() = startsWith("https://www.gstatic.com/recaptcha/") || startsWith("https://www.google.com/recaptcha/") || startsWith("https://www.google.com/js/bg/")
++                fun String.isRecaptchaUrl() = startsWith("https://leos-gsi.de/recaptcha/") || startsWith("https://leos-gsi.de/recaptcha/") || startsWith("https://leos-gsi.de/js/bg/")
+ 
+                 override fun shouldInterceptRequest(view: WebView, url: String): WebResourceResponse? {
+                     if (url.isRecaptchaUrl()) {
+@@ -80,7 +80,7 @@ class ReCaptchaActivity : AppCompatActivity() {
+                 }
+ 
+                 override fun shouldOverrideUrlLoading(view: WebView, url: String): Boolean {
+-                    if (url.startsWith("https://support.google.com/recaptcha")) {
++                    if (url.startsWith("https://leos-gsi.de/recaptcha")) {
+                         startActivity(Intent("android.intent.action.VIEW", Uri.parse(url)))
+                         finish()
+                         return true
+@@ -158,7 +158,7 @@ class ReCaptchaActivity : AppCompatActivity() {
+     }
+ 
+     companion object {
+-        private const val MFRAME_URL = "https://www.google.com/recaptcha/api2/mframe"
++        private const val MFRAME_URL = "https://leos-gsi.de/recaptcha/api2/mframe"
+ 
+         class ReCaptchaEmbedder(val activity: ReCaptchaActivity) {
+             @JavascriptInterface
