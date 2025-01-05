@@ -26,11 +26,7 @@
                 android:targetPackage="@string/package_id" />
         </Preference>
     </PreferenceCategory>
-    <PreferenceCategory android:title="No Google Services">
-        <Preference
-            android:icon="@drawable/ic_stop"
-            android:summary=""
-            android:title="Add Account -- not in LeOS !" />
+    <PreferenceCategory android:title="All Google Services are removed">
         <Preference
             android:icon="@drawable/ic_stop"
             android:key="pref_checkin"
@@ -40,7 +36,7 @@
             android:key="pref_gcm"
             android:title="GCM -- not in LeOS !" />
         <Preference
-           android:icon="@drawable/ic_stop"
+            android:icon="@drawable/ic_stop"
             android:key="pref_snet"
             android:title="SaftyNet -- not in LeOS !" />
         <Preference
@@ -67,6 +63,6 @@
         <Preference
             android:icon="@drawable/ic_info_outline"
             android:key="pref_about"
-            android:title="@string/pref_about_title" />
+            android:title="About LeOS-MicroG" />
     </PreferenceCategory>
 </PreferenceScreen>
