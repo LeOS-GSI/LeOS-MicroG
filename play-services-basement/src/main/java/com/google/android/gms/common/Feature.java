@@ -5,20 +5,27 @@
 
 package com.google.android.gms.common;
 
-import org.microg.safeparcel.AutoSafeParcelable;
+import android.os.Parcel;
+import androidx.annotation.NonNull;
+import com.google.android.gms.common.internal.safeparcel.AbstractSafeParcelable;
+import com.google.android.gms.common.internal.safeparcel.SafeParcelable;
+import com.google.android.gms.common.internal.safeparcel.SafeParcelableCreatorAndWriter;
+import org.microg.gms.utils.ToStringHelper;
 
-public class Feature extends AutoSafeParcelable {
-    @Field(1)
+@SafeParcelable.Class
+public class Feature extends AbstractSafeParcelable {
+    @Field(value = 1, getterName = "getName")
     private String name;
     @Field(2)
-    private int oldVersion;
-    @Field(3)
+    int oldVersion;
+    @Field(value = 3, getterName = "getVersion", defaultValue = "-1")
     private long version = -1;
 
     private Feature() {
     }
 
-    public Feature(String name, long version) {
+    @Constructor
+    public Feature(@Param(1) String name, @Param(3) long version) {
         this.name = name;
         this.version = version;
     }
@@ -32,5 +39,16 @@ public class Feature extends AutoSafeParcelable {
         return version;
     }
 
-    public static final Creator<Feature> CREATOR = new AutoSafeParcelable.AutoCreator<>(Feature.class);
+    @NonNull
+    @Override
+    public String toString() {
+        return ToStringHelper.name("Feature").value(name).value(getVersion()).end();
+    }
+
+    @Override
+    public void writeToParcel(@NonNull Parcel dest, int flags) {
+        CREATOR.writeToParcel(this, dest, flags);
+    }
+
+    public static final SafeParcelableCreatorAndWriter<Feature> CREATOR = findCreator(Feature.class);
 }

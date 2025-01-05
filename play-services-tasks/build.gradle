@@ -8,6 +8,8 @@ apply plugin: 'maven-publish'
 apply plugin: 'signing'
 
 android {
+    namespace "com.google.android.gms.tasks"
+
     compileSdkVersion androidCompileSdk
     buildToolsVersion "$androidBuildVersionTools"
 
@@ -24,6 +26,7 @@ android {
 }
 
 dependencies {
+    // Dependencies from play-services-tasks:18.0.2
     api project(':play-services-basement')
 }
 

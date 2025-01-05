@@ -30,6 +30,7 @@ import android.view.LayoutInflater;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
+import org.microg.gms.common.Constants;
 import org.microg.tools.selfcheck.InstalledPackagesChecks;
 //import org.microg.tools.selfcheck.NlpOsCompatChecks;
 //import org.microg.tools.selfcheck.NlpStatusChecks;
@@ -42,11 +43,13 @@ import org.microg.tools.ui.AbstractSettingsActivity;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import static android.Manifest.permission.ACCESS_BACKGROUND_LOCATION;
 import static android.Manifest.permission.ACCESS_COARSE_LOCATION;
 import static android.Manifest.permission.ACCESS_FINE_LOCATION;
 import static android.Manifest.permission.GET_ACCOUNTS;
+import static android.Manifest.permission.POST_NOTIFICATIONS;
 import static android.Manifest.permission.READ_EXTERNAL_STORAGE;
 import static android.Manifest.permission.READ_PHONE_STATE;
 import static android.Manifest.permission.READ_SMS;
@@ -58,8 +61,10 @@ import static android.os.Build.VERSION_CODES.LOLLIPOP_MR1;
 public class SelfCheckFragment extends AbstractSelfCheckFragment {
 
     @Override
-    protected void prepareSelfCheckList(List<SelfCheckGroup> checks) {
-        checks.add(new RomSpoofSignatureChecks());
+    protected void prepareSelfCheckList(Context context, List<SelfCheckGroup> checks) {
+        if (Objects.equals(context.getPackageName(), Constants.GMS_PACKAGE_NAME)) {
+            checks.add(new RomSpoofSignatureChecks());
+        }
         checks.add(new InstalledPackagesChecks());
         if (SDK_INT >= 23) {
             List<String> permissions = new ArrayList<>();
@@ -71,6 +76,9 @@ public class SelfCheckFragment extends AbstractSelfCheckFragment {
             permissions.add(READ_EXTERNAL_STORAGE);
             permissions.add(WRITE_EXTERNAL_STORAGE);
             permissions.add(GET_ACCOUNTS);
+            if (SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                permissions.add(POST_NOTIFICATIONS);
+            }
             permissions.add(READ_PHONE_STATE);
             permissions.add(RECEIVE_SMS);
             checks.add(new PermissionCheckGroup(permissions.toArray(new String[0])) {
@@ -96,7 +104,7 @@ public class SelfCheckFragment extends AbstractSelfCheckFragment {
                 }
             });
         }
-        if (SDK_INT >= Build.VERSION_CODES.M) {
+        if (SDK_INT >= 23) {
             checks.add(new SystemChecks());
         }
 //        checks.add(new NlpOsCompatChecks());

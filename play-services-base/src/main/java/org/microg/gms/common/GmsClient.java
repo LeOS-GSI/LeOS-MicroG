@@ -27,17 +27,17 @@ import android.os.RemoteException;
 import android.util.Log;
 
 import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.Api;
 import com.google.android.gms.common.api.CommonStatusCodes;
 import com.google.android.gms.common.internal.ConnectionInfo;
 import com.google.android.gms.common.internal.GetServiceRequest;
 import com.google.android.gms.common.internal.IGmsCallbacks;
 import com.google.android.gms.common.internal.IGmsServiceBroker;
 
-import org.microg.gms.common.api.ApiClient;
 import org.microg.gms.common.api.ConnectionCallbacks;
 import org.microg.gms.common.api.OnConnectionFailedListener;
 
-public abstract class GmsClient<I extends IInterface> implements ApiClient {
+public abstract class GmsClient<I extends IInterface> implements Api.Client {
     private static final String TAG = "GmsClient";
 
     private final Context context;
@@ -46,7 +46,10 @@ public abstract class GmsClient<I extends IInterface> implements ApiClient {
     protected ConnectionState state = ConnectionState.NOT_CONNECTED;
     private ServiceConnection serviceConnection;
     private I serviceInterface;
-    private String actionString;
+    private final String actionString;
+
+    protected boolean requireMicrog;
+    protected String packageName;
 
     protected int serviceId = -1;
     protected Account account = null;
@@ -57,6 +60,8 @@ public abstract class GmsClient<I extends IInterface> implements ApiClient {
         this.callbacks = callbacks;
         this.connectionFailedListener = connectionFailedListener;
         this.actionString = actionString;
+        this.requireMicrog = false;
+        this.packageName = context.getPackageName();
     }
 
     protected void onConnectedToBroker(IGmsServiceBroker broker, GmsCallbacks callbacks) throws RemoteException {
@@ -64,8 +69,7 @@ public abstract class GmsClient<I extends IInterface> implements ApiClient {
             throw new IllegalStateException("Service ID not set in constructor and onConnectedToBroker not implemented");
         }
         GetServiceRequest request = new GetServiceRequest(serviceId);
-        request.extras = new Bundle();
-        request.packageName = context.getPackageName();
+        request.packageName = packageName;
         request.account = account;
         request.extras = extras;
         broker.getService(callbacks, request);
@@ -84,7 +88,7 @@ public abstract class GmsClient<I extends IInterface> implements ApiClient {
             MultiConnectionKeeper.getInstance(context).unbind(actionString, serviceConnection);
         }
         serviceConnection = new GmsServiceConnection();
-        if (!MultiConnectionKeeper.getInstance(context).bind(actionString, serviceConnection)) {
+        if (!MultiConnectionKeeper.getInstance(context).bind(actionString, serviceConnection, requireMicrog)) {
             state = ConnectionState.ERROR;
             handleConnectionFailed();
         }

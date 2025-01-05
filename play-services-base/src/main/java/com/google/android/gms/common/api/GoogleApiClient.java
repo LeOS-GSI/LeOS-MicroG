@@ -364,7 +364,12 @@ public interface GoogleApiClient {
         }
 
         private ApiClientSettings getClientSettings() {
-            return null;
+            ApiClientSettings clientSettings = new ApiClientSettings();
+            clientSettings.accountName = accountName;
+            clientSettings.scopes = new HashSet<>(scopes);
+            clientSettings.gravityForPopups = gravityForPopups;
+            clientSettings.viewForPopups = viewForPopups;
+            return clientSettings;
         }
 
         public Builder enableAutoManage(FragmentActivity fragmentActivity, int cliendId,
@@ -444,6 +449,8 @@ public interface GoogleApiClient {
          * A suspension cause informing you that a peer device connection was lost.
          */
         int CAUSE_NETWORK_LOST = 2;
+
+        void onConnected(Bundle connectionHint);
     }
 
     /**

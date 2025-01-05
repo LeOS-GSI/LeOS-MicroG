@@ -16,25 +16,21 @@
 
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
-    <PreferenceCategory android:layout="@layout/preference_category_no_label">
+    <PreferenceCategory android:layout="@layout/preference_category_no_label" android:key="prefcat_header">
         <Preference
-            android:icon="@drawable/self_check"
+            android:icon="@drawable/ic_check_list"
             android:summary="@string/self_check_desc"
             android:title="@string/self_check_title">
             <intent
                 android:targetClass="org.microg.gms.ui.SelfCheckFragment$AsActivity"
-                android:targetPackage="com.google.android.gms" />
+                android:targetPackage="@string/package_id" />
         </Preference>
     </PreferenceCategory>
     <PreferenceCategory android:title="No Google Services">
         <Preference
             android:icon="@drawable/ic_stop"
             android:summary=""
-            android:title="Add Account -- not in LeOS !">
-            <intent
-                android:targetClass="org.microg.gms.auth.login.LoginActivity"
-                android:targetPackage="com.google.android.gms" />
-        </Preference>
+            android:title="Add Account -- not in LeOS !" />
         <Preference
             android:icon="@drawable/ic_stop"
             android:key="pref_checkin"
@@ -44,9 +40,13 @@
             android:key="pref_gcm"
             android:title="GCM -- not in LeOS !" />
         <Preference
-            android:icon="@drawable/ic_stop"
+           android:icon="@drawable/ic_stop"
             android:key="pref_snet"
             android:title="SaftyNet -- not in LeOS !" />
+        <Preference
+            android:icon="@drawable/ic_stop"
+            android:key="pref_vending"
+            android:title="Shop -- not in LeOS !" />
         <Preference
             android:icon="@drawable/dots_horizontal"
             android:key="pref_google_more"
@@ -54,23 +54,19 @@
             app:isPreferenceVisible="false">
             <intent
                 android:targetClass="org.microg.gms.ui.GoogleMoreFragment$AsActivity"
-                android:targetPackage="com.google.android.gms" />
+                android:targetPackage="@string/package_id" />
         </Preference>
     </PreferenceCategory>
-    <PreferenceCategory android:layout="@layout/preference_category_no_label">
+    <PreferenceCategory android:layout="@layout/preference_category_no_label" android:key="prefcat_other_services">
         <Preference
             android:icon="@drawable/ic_map_marker"
-            android:key="pref_unifiednlp"
-            android:title="@string/nlp_backends_title" />
-        <Preference
-            android:key="pref_exposure"
-            android:title="@string/service_name_exposure"
-            app:isPreferenceVisible="false" />
+            android:key="pref_location"
+            android:title="@string/service_name_location"/>
     </PreferenceCategory>
-    <PreferenceCategory android:layout="@layout/preference_category_no_label">
+    <PreferenceCategory android:layout="@layout/preference_category_no_label" android:key="prefcat_footer">
         <Preference
             android:icon="@drawable/ic_info_outline"
             android:key="pref_about"
-            android:title="About LeOS-MicroG" />
+            android:title="@string/pref_about_title" />
     </PreferenceCategory>
 </PreferenceScreen>

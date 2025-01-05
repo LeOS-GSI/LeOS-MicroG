@@ -10,17 +10,17 @@ import android.content.Context
 import android.content.Intent
 import android.os.*
 import android.util.Log
+import androidx.core.app.PendingIntentCompat
 import androidx.legacy.content.WakefulBroadcastReceiver
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
-import org.microg.gms.checkin.CheckinPrefs
+import org.microg.gms.checkin.CheckinPreferences
 import org.microg.gms.checkin.CheckinService
 import org.microg.gms.checkin.LastCheckinInfo
 import org.microg.gms.common.ForegroundServiceContext
 import org.microg.gms.common.PackageUtils
-import org.microg.gms.common.Utils
 import org.microg.gms.gcm.GcmConstants.*
 import org.microg.gms.ui.AskPushPermission
 import java.util.concurrent.atomic.AtomicBoolean
@@ -30,7 +30,7 @@ import kotlin.coroutines.suspendCoroutine
 private const val TAG = "GmsGcmRegister"
 
 private suspend fun ensureCheckinIsUpToDate(context: Context) {
-    if (!CheckinPrefs.isEnabled(context)) throw RuntimeException("Checkin disabled")
+    if (!CheckinPreferences.isEnabled(context)) throw RuntimeException("Checkin disabled")
     val lastCheckin = LastCheckinInfo.read(context).lastCheckin
     if (lastCheckin < System.currentTimeMillis() - CheckinService.MAX_VALID_CHECKIN_AGE) {
         val resultData: Bundle = suspendCoroutine { continuation ->
@@ -206,8 +206,7 @@ class PushRegisterService : LifecycleService() {
     }
 }
 
-internal class PushRegisterHandler(private val context: Context, private val database: GcmDatabase, private val lifecycle: Lifecycle) : Handler(), LifecycleOwner {
-    override fun getLifecycle(): Lifecycle = lifecycle
+internal class PushRegisterHandler(private val context: Context, private val database: GcmDatabase, override val lifecycle: Lifecycle) : Handler(), LifecycleOwner {
 
     private var callingUid = 0
     override fun sendMessageAtTime(msg: Message, uptimeMillis: Long): Boolean {
@@ -263,7 +262,7 @@ internal class PushRegisterHandler(private val context: Context, private val dat
         private get() {
             val intent = Intent()
             intent.setPackage("com.google.example.invalidpackage")
-            return PendingIntent.getBroadcast(context, 0, intent, 0)
+            return PendingIntentCompat.getBroadcast(context, 0, intent, 0, false)!!
         }
 
     override fun handleMessage(msg: Message) {
@@ -328,7 +327,7 @@ internal class PushRegisterHandler(private val context: Context, private val dat
                 }
             }
             2 -> {
-                val messageId = subdata!!.getString("goolag.message_id")
+                val messageId = subdata!!.getString("google.message_id")
                 Log.d(TAG, "Ack $messageId for $packageName")
                 val i = Intent(context, McsService::class.java)
                 i.action = McsConstants.ACTION_ACK
@@ -350,3 +349,15 @@ internal class PushRegisterHandler(private val context: Context, private val dat
     }
 }
 
+class PushRegisterReceiver : WakefulBroadcastReceiver() {
+    override fun onReceive(context: Context, intent: Intent) {
+        val intent2 = Intent(context, PushRegisterService::class.java)
+        if (intent.extras!!.get("delete") != null) {
+            intent2.action = ACTION_C2DM_UNREGISTER
+        } else {
+            intent2.action = ACTION_C2DM_REGISTER
+        }
+        intent2.putExtras(intent.extras!!)
+        startWakefulService(context, intent2)
+    }
+}

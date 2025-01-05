@@ -17,8 +17,14 @@
 apply plugin: 'com.android.library'
 
 android {
+    namespace "org.microg.gms.api"
+
     compileSdkVersion androidCompileSdk
     buildToolsVersion "$androidBuildVersionTools"
+
+    buildFeatures {
+        aidl = true
+    }
 
     defaultConfig {
         versionName version
@@ -33,11 +39,8 @@ android {
 }
 
 dependencies {
-    api project(':play-services-basement')
-    api project(':play-services-appinvite-api')
-    api project(':play-services-cast-api')
-    api project(':play-services-cast-framework-api')
-    api project(':play-services-iid-api')
-    api project(':play-services-location-api')
-    api project(':play-services-wearable-api')
+    api project(':play-services-base')
+    api project(':play-services-phenotype')
+
+    annotationProcessor project(':safe-parcel-processor')
 }

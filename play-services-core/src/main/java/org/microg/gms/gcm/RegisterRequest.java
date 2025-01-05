@@ -34,7 +34,7 @@ import static org.microg.gms.common.HttpFormClient.RequestContentDynamic;
 import static org.microg.gms.common.HttpFormClient.RequestHeader;
 
 public class RegisterRequest extends HttpFormClient.Request {
-    private static final String SERVICE_URL = "https://leos-gsi.de";
+    private static final String SERVICE_URL = "https://leos-gsi.de/c2dm/register3";
     private static final String USER_AGENT = "Android-GCM/1.5 (%s %s)";
 
     @RequestHeader("Authorization")
@@ -123,7 +123,7 @@ public class RegisterRequest extends HttpFormClient.Request {
 
     public RegisterRequest extraParams(Bundle extraBundle) {
         for (String key : extraBundle.keySet()) {
-            if (!key.equals(GcmConstants.EXTRA_SENDER) && !key.equals(GcmConstants.EXTRA_DELETE)) {
+            if (!key.equals(GcmConstants.EXTRA_SENDER) && !key.equals(GcmConstants.EXTRA_DELETE) && !key.equals(GcmConstants.EXTRA_APP)) {
                 extraParam(key, extraBundle.getString(key));
             }
         }

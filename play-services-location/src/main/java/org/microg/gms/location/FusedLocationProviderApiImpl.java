@@ -26,6 +26,8 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.PendingResult;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.FusedLocationProviderApi;
+import com.google.android.gms.location.LocationAvailability;
+import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
@@ -37,10 +39,24 @@ public class FusedLocationProviderApiImpl implements FusedLocationProviderApi {
     private static final String TAG = "GmsFusedApiImpl";
 
     @Override
+    public PendingResult<Status> flushLocations(GoogleApiClient client) {
+        return null;
+    }
+
+    @Override
     public Location getLastLocation(GoogleApiClient client) {
         try {
-            Log.d(TAG, "getLastLocation(" + client + ")");
             return LocationClientImpl.get(client).getLastLocation();
+        } catch (RemoteException e) {
+            Log.w(TAG, e);
+            return null;
+        }
+    }
+
+    @Override
+    public LocationAvailability getLocationAvailability(GoogleApiClient client) {
+        try {
+            return LocationClientImpl.get(client).getLocationAvailability();
         } catch (RemoteException e) {
             Log.w(TAG, e);
             return null;
@@ -59,13 +75,25 @@ public class FusedLocationProviderApiImpl implements FusedLocationProviderApi {
     }
 
     @Override
-    public PendingResult<Status> requestLocationUpdates(GoogleApiClient client,
-                                                final LocationRequest request, final LocationListener listener,
-                                                final Looper looper) {
+    public PendingResult<Status> requestLocationUpdates(GoogleApiClient client, LocationRequest request, LocationCallback callback, Looper looper) {
+        Looper currentLooper = looper == null ? Looper.myLooper() : looper;
         return callVoid(client, new Runnable() {
             @Override
             public void run(LocationClientImpl client) throws RemoteException {
-                client.requestLocationUpdates(request, listener, looper);
+                client.requestLocationUpdates(request, callback, currentLooper);
+            }
+        });
+    }
+
+    @Override
+    public PendingResult<Status> requestLocationUpdates(GoogleApiClient client,
+                                                final LocationRequest request, final LocationListener listener,
+                                                final Looper looper) {
+        Looper currentLooper = looper == null ? Looper.myLooper() : looper;
+        return callVoid(client, new Runnable() {
+            @Override
+            public void run(LocationClientImpl client) throws RemoteException {
+                client.requestLocationUpdates(request, listener, currentLooper);
             }
         });
     }
@@ -88,6 +116,16 @@ public class FusedLocationProviderApiImpl implements FusedLocationProviderApi {
             @Override
             public void run(LocationClientImpl client) throws RemoteException {
                 client.removeLocationUpdates(listener);
+            }
+        });
+    }
+
+    @Override
+    public PendingResult<Status> removeLocationUpdates(GoogleApiClient client, LocationCallback callback) {
+        return callVoid(client, new Runnable() {
+            @Override
+            public void run(LocationClientImpl client) throws RemoteException {
+                client.removeLocationUpdates(callback);
             }
         });
     }

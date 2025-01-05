@@ -4,10 +4,21 @@
  */
 
 apply plugin: 'com.android.library'
+apply plugin: 'maven-publish'
+apply plugin: 'signing'
 
 android {
+    namespace "com.google.android.gms.cast"
+
     compileSdkVersion androidCompileSdk
     buildToolsVersion "$androidBuildVersionTools"
+
+    aidlPackagedList "com/google/android/gms/cast/ApplicationMetadata.aidl"
+    aidlPackagedList "com/google/android/gms/cast/LaunchOptions.aidl"
+
+    buildFeatures {
+        aidl = true
+    }
 
     defaultConfig {
         versionName version
@@ -21,14 +32,18 @@ android {
     }
 }
 
-dependencies {
-    api project(':play-services-cast-api')
+apply from: '../gradle/publish-android.gradle'
 
-    // Dependencies from play-services-cast:21.0.1
+description = 'microG implementation of play-services-cast'
+
+dependencies {
+    // Dependencies from play-services-cast:21.2.0
     api "androidx.core:core:1.0.0"
     api "androidx.mediarouter:mediarouter:1.2.2"
     api project(':play-services-base')
     api project(':play-services-basement')
     //api project(':play-services-flags')
     api project(':play-services-tasks')
+
+    annotationProcessor project(':safe-parcel-processor')
 }

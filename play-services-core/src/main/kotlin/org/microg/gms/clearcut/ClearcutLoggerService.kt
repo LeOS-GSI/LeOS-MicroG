@@ -5,7 +5,6 @@
 package org.microg.gms.clearcut
 
 import android.os.Parcel
-import android.os.RemoteException
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
@@ -30,37 +29,37 @@ class ClearcutLoggerService : BaseService(TAG, GmsService.CLEARCUT_LOGGER) {
     }
 }
 
-class ClearcutLoggerServiceImpl(private val lifecycle: Lifecycle) : IClearcutLoggerService.Stub(), LifecycleOwner {
+class ClearcutLoggerServiceImpl(override val lifecycle: Lifecycle) : IClearcutLoggerService.Stub(), LifecycleOwner {
     private var collectForDebugExpiryTime: Long = 0
 
     override fun log(callbacks: IClearcutLoggerCallbacks, event: LogEventParcelable) {
         lifecycleScope.launchWhenStarted {
-            callbacks.onLogResult(Status.SUCCESS)
+            runCatching { callbacks.onLogResult(Status.SUCCESS) }
         }
     }
 
     override fun forceUpload(callbacks: IClearcutLoggerCallbacks) {
         lifecycleScope.launchWhenStarted {
-            callbacks.onLogResult(Status.SUCCESS)
+            runCatching { callbacks.onLogResult(Status.SUCCESS) }
         }
     }
 
     override fun startCollectForDebug(callbacks: IClearcutLoggerCallbacks) {
         lifecycleScope.launchWhenStarted {
             collectForDebugExpiryTime = System.currentTimeMillis() + COLLECT_FOR_DEBUG_DURATION
-            callbacks.onStartCollectForDebugResult(Status.SUCCESS, collectForDebugExpiryTime)
+            runCatching { callbacks.onStartCollectForDebugResult(Status.SUCCESS, collectForDebugExpiryTime) }
         }
     }
 
     override fun stopCollectForDebug(callbacks: IClearcutLoggerCallbacks) {
         lifecycleScope.launchWhenStarted {
-            callbacks.onStopCollectForDebugResult(Status.SUCCESS)
+            runCatching { callbacks.onStopCollectForDebugResult(Status.SUCCESS) }
         }
     }
 
     override fun getCollectForDebugExpiryTime(callbacks: IClearcutLoggerCallbacks) {
         lifecycleScope.launchWhenStarted {
-            callbacks.onCollectForDebugExpiryTime(Status.SUCCESS, collectForDebugExpiryTime)
+            runCatching { callbacks.onCollectForDebugExpiryTime(Status.SUCCESS, collectForDebugExpiryTime) }
         }
     }
 
@@ -70,11 +69,9 @@ class ClearcutLoggerServiceImpl(private val lifecycle: Lifecycle) : IClearcutLog
 
     override fun getLogEventParcelables(callbacks: IClearcutLoggerCallbacks) {
         lifecycleScope.launchWhenStarted {
-            callbacks.onLogEventParcelables(DataHolder.empty(CommonStatusCodes.SUCCESS))
+            runCatching { callbacks.onLogEventParcelables(DataHolder.empty(CommonStatusCodes.SUCCESS)) }
         }
     }
 
-    override fun getLifecycle(): Lifecycle = lifecycle
-
-    override fun onTransact(code: Int, data: Parcel, reply: Parcel?, flags: Int): Boolean = warnOnTransactionIssues(code, reply, flags) { super.onTransact(code, data, reply, flags) }
+    override fun onTransact(code: Int, data: Parcel, reply: Parcel?, flags: Int): Boolean = warnOnTransactionIssues(code, reply, flags, TAG) { super.onTransact(code, data, reply, flags) }
 }

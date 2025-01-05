@@ -32,12 +32,16 @@ import org.microg.gms.profile.Build
 import org.microg.gms.profile.ProfileManager
 import org.microg.gms.settings.SettingsContract.CheckIn
 import org.microg.gms.settings.SettingsContract.getSettings
+import org.microg.gms.utils.digest
+import org.microg.gms.utils.getCertificates
+import org.microg.gms.utils.singleInstanceOf
+import org.microg.gms.utils.toBase64
 import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
 import kotlin.random.Random
 
 class AppCertManager(private val context: Context) {
-    private val queue = Volley.newRequestQueue(context)
+    private val queue = singleInstanceOf { Volley.newRequestQueue(context.applicationContext) }
 
     private fun readDeviceKey() {
         try {
@@ -73,7 +77,7 @@ class AppCertManager(private val context: Context) {
                         "dg_sdkVersion" to Build.VERSION.SDK_INT.toString()
                 )
                 val droidGuardResult = try {
-                    Base64.encodeToString(DroidGuardResultCreator.getResult(context, "devicekey", data), Base64.NO_WRAP + Base64.NO_PADDING + Base64.URL_SAFE)
+                    DroidGuardResultCreator.getResults(context, "devicekey", data)
                 } catch (e: Exception) {
                     null
                 }
@@ -81,8 +85,8 @@ class AppCertManager(private val context: Context) {
                         .checkin(lastCheckinInfo)
                         .app("com.google.android.gms", Constants.GMS_PACKAGE_SIGNATURE_SHA1, BuildConfig.VERSION_CODE)
                         .sender(REGISTER_SENDER)
-                        .extraParam("subscription", REGISTER_SUBSCIPTION)
-                        .extraParam("X-subscription", REGISTER_SUBSCIPTION)
+                        .extraParam("subscription", REGISTER_SUBSCRIPTION)
+                        .extraParam("X-subscription", REGISTER_SUBSCRIPTION)
                         .extraParam("subtype", REGISTER_SUBTYPE)
                         .extraParam("X-subtype", REGISTER_SUBTYPE)
                         .extraParam("scope", REGISTER_SCOPE))
@@ -110,7 +114,11 @@ class AppCertManager(private val context: Context) {
                     }
 
                     override fun deliverError(error: VolleyError) {
-                        Log.d(TAG, "Error: ${Base64.encodeToString(error.networkResponse.data, 2)}")
+                        if (error.networkResponse != null) {
+                            Log.d(TAG, "Error: ${Base64.encodeToString(error.networkResponse.data, 2)}")
+                        } else {
+                            Log.d(TAG, "Error: ${error.message}")
+                        }
                         deviceKeyCacheTime = 0
                         deferredResponse.complete(null)
                     }
@@ -144,7 +152,7 @@ class AppCertManager(private val context: Context) {
 
     suspend fun getSpatulaHeader(packageName: String): String? {
         val deviceKey = deviceKey ?: if (fetchDeviceKey()) deviceKey else null
-        val packageCertificateHash = Base64.encodeToString(PackageUtils.firstSignatureDigestBytes(context, packageName), Base64.NO_WRAP)
+        val packageCertificateHash = context.packageManager.getCertificates(packageName).firstOrNull()?.digest("SHA1")?.toBase64(Base64.NO_WRAP)
         val proto = if (deviceKey != null) {
             val macSecret = deviceKey.macSecret?.toByteArray()
             if (macSecret == null) {
@@ -163,11 +171,12 @@ class AppCertManager(private val context: Context) {
             )
         } else {
             Log.d(TAG, "Using fallback spatula header based on Android ID")
-            val androidId = getSettings(context, CheckIn.getContentUri(context), arrayOf(CheckIn.ANDROID_ID, CheckIn.SECURITY_TOKEN)) { cursor: Cursor -> cursor.getLong(0) }
+            val androidId = getSettings(context, CheckIn.getContentUri(context), arrayOf(CheckIn.ANDROID_ID)) { cursor: Cursor -> cursor.getLong(0) }
             SpatulaHeaderProto(
                     packageInfo = SpatulaHeaderProto.PackageInfo(packageName, packageCertificateHash),
                     deviceId = androidId
             )
+            return null // TODO
         }
         Log.d(TAG, "Spatula Header: $proto")
         return Base64.encodeToString(proto.encode(), Base64.NO_WRAP)
@@ -178,7 +187,7 @@ class AppCertManager(private val context: Context) {
         private const val DEVICE_KEY_TIMEOUT = 60 * 60 * 1000L
         private const val REGISTER_SENDER = "745476177629"
         private const val REGISTER_SUBTYPE = "745476177629"
-        private const val REGISTER_SUBSCIPTION = "745476177629"
+        private const val REGISTER_SUBSCRIPTION = "745476177629"
         private const val REGISTER_SCOPE = "DeviceKeyRequest"
         private val deviceKeyLock = Mutex()
         private var deviceKey: DeviceKey? = null

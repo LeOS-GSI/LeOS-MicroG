@@ -1,8 +1,22 @@
-This is a full ungoogled version of GMSCore.For building you need to have UnifiedNLP available
+# microG Services
+
+[![Build status](https://github.com/microg/GmsCore/actions/workflows/build.yml/badge.svg)](https://github.com/microg/GmsCore/actions/workflows/build.yml)
+<a href=TRANSLATION.md>
+<img src="https://hosted.weblate.org/widget/microg/svg-badge.svg" alt="Translation status" />
+</a>
+
+microG Services is a FLOSS (Free/Libre Open Source Software) framework to allow applications designed for Google Play Services to run on systems, where Play Services is not available.
+
+### Please refer to the [wiki](https://github.com/microg/GmsCore/wiki) for downloads and instructions
+
+## Translations
+
+If you'd like to help translate microG, take a look at [TRANSLATION](TRANSLATION.md).
+
 
 License
 -------
-    Copyleft 2013-2023 Harvey186 and microG Project Team
+    Copyright 2013-2024 microG Project Team
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.

@@ -12,9 +12,6 @@
         android:name="org.microg.gms.ui.SettingsFragment"
         android:label="@string/gms_settings_name">
         <action
-            android:id="@+id/openUnifiedNlpSettings"
-            app:destination="@id/nav_unlp" />
-        <action
             android:id="@+id/openSelfcheck"
             app:destination="@id/selfcheckFragment" />
         <action
@@ -27,11 +24,14 @@
             android:id="@+id/openSafetyNetSettings"
             app:destination="@id/safetyNetFragment" />
         <action
+            android:id="@+id/openVendingSettings"
+            app:destination="@id/vendingFragment" />
+        <action
             android:id="@+id/openMoreGoogleSettings"
             app:destination="@id/googleMoreFragment" />
         <action
-            android:id="@+id/openExposureNotificationSettings"
-            app:destination="@id/nav_nearby" />
+            android:id="@+id/openLocationSettings"
+            app:destination="@id/nav_location" />
         <action
             android:id="@+id/openAbout"
             app:destination="@id/aboutFragment" />
@@ -44,13 +44,24 @@
         android:name="org.microg.gms.ui.SelfCheckFragment"
         android:label="@string/self_check_title" />
 
+    <!-- Account -->
+
+    <fragment
+        android:id="@+id/accountManagerFragment"
+        android:name="org.microg.gms.ui.AccountsFragment"
+        android:label="@string/pref_accounts_title" />
+
     <!-- Device registration -->
 
     <fragment
         android:id="@+id/checkinFragment"
         android:name="org.microg.gms.ui.DeviceRegistrationFragment"
         android:label="@string/service_name_checkin"
-        tools:layout="@layout/device_registration_fragment" />
+        tools:layout="@layout/device_registration_fragment">
+        <deepLink
+            app:uri="x-gms-settings://checkin"
+            app:action="org.microg.gms.settings.CHECKIN_SETTINGS" />
+    </fragment>
 
     <!-- Push Notifications -->
 
@@ -68,6 +79,9 @@
         <action
             android:id="@+id/openGcmAdvancedSettings"
             app:destination="@id/gcmAdvancedFragment" />
+        <deepLink
+            app:uri="x-gms-settings://gcm"
+            app:action="org.microg.gms.settings.GCM_SETTINGS" />
     </fragment>
 
     <fragment
@@ -137,6 +151,13 @@
             app:argType="string" />
     </fragment>
 
+    <!-- Play Store services -->
+
+    <fragment
+        android:id="@+id/vendingFragment"
+        android:name="org.microg.gms.ui.VendingFragment"
+        android:label="@string/service_name_vending" />
+
     <!-- More -->
 
     <fragment
@@ -154,6 +175,5 @@
 
     <!-- Included -->
 
-    <include app:graph="@navigation/nav_unlp" />
-    <include app:graph="@navigation/nav_nearby" />
+    <include app:graph="@navigation/nav_location" />
 </navigation>

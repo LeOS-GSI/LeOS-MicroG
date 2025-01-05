@@ -19,20 +19,23 @@ package com.google.android.gms.common.internal;
 import android.accounts.Account;
 import android.os.Bundle;
 import android.os.IBinder;
-
+import android.os.Parcel;
+import androidx.annotation.NonNull;
 import com.google.android.gms.common.Feature;
 import com.google.android.gms.common.api.Scope;
-
+import com.google.android.gms.common.internal.safeparcel.AbstractSafeParcelable;
+import com.google.android.gms.common.internal.safeparcel.SafeParcelable;
+import com.google.android.gms.common.internal.safeparcel.SafeParcelableCreatorAndWriter;
 import org.microg.gms.common.Constants;
 import org.microg.gms.common.GmsService;
-import org.microg.safeparcel.AutoSafeParcelable;
-import org.microg.safeparcel.SafeParceled;
+import org.microg.gms.utils.ToStringHelper;
 
 import java.util.Arrays;
 
-public class GetServiceRequest extends AutoSafeParcelable {
+@SafeParcelable.Class
+public class GetServiceRequest extends AbstractSafeParcelable {
     @Field(1)
-    private int versionCode = 4;
+    int versionCode = 6;
     @Field(2)
     public final int serviceId;
     @Field(3)
@@ -48,42 +51,53 @@ public class GetServiceRequest extends AutoSafeParcelable {
     @Field(8)
     public Account account;
     @Field(9)
-    private long field9;
+    @Deprecated
+    long field9;
     @Field(10)
     public Feature[] defaultFeatures;
     @Field(11)
     public Feature[] apiFeatures;
     @Field(12)
-    private boolean field12;
+    public boolean supportsConnectionInfo;
     @Field(13)
-    private int field13;
+    int field13;
     @Field(14)
-    private boolean field14;
+    boolean field14;
     @Field(15)
-    private String field15;
+    public String attributionTag;
 
     private GetServiceRequest() {
         serviceId = -1;
         gmsVersion = Constants.GMS_VERSION_CODE;
     }
 
-    public GetServiceRequest(int serviceId) {
+    @Constructor
+    public GetServiceRequest(@Param(2) int serviceId) {
         this.serviceId = serviceId;
         this.gmsVersion = Constants.GMS_VERSION_CODE;
-        this.field12 = true;
+        this.supportsConnectionInfo = true;
     }
 
     @Override
     public String toString() {
-        return "GetServiceRequest{" +
-                "serviceId=" + GmsService.nameFromServiceId(serviceId) +
-                ", gmsVersion=" + gmsVersion +
-                ", packageName='" + packageName + '\'' +
-                (scopes == null || scopes.length == 0 ? "" : (", scopes=" + Arrays.toString(scopes))) +
-                (extras == null ? "" : (", extras=" + extras)) +
-                (account == null ? "" : (", account=" + account)) +
-                '}';
+        return ToStringHelper.name("GetServiceRequest")
+                .value(GmsService.nameFromServiceId(serviceId))
+                .field("packageName", packageName)
+                .field("gmsVersion", gmsVersion)
+                .field("scopes", scopes)
+                .field("extras", extras)
+                .field("account", account)
+                .field("defaultFeatures", defaultFeatures)
+                .field("apiFeatures", apiFeatures)
+                .field("supportsConnectionInfo", supportsConnectionInfo)
+                .field("attributionTag", attributionTag)
+                .end();
     }
 
-    public static Creator<GetServiceRequest> CREATOR = new AutoCreator<GetServiceRequest>(GetServiceRequest.class);
+    @Override
+    public void writeToParcel(@NonNull Parcel dest, int flags) {
+        CREATOR.writeToParcel(this, dest, flags);
+    }
+
+    public static SafeParcelableCreatorAndWriter<GetServiceRequest> CREATOR = findCreator(GetServiceRequest.class);
 }

@@ -22,9 +22,9 @@ import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.NetworkRequest;
-import android.provider.Settings;
 import android.util.Log;
 
+import androidx.core.app.PendingIntentCompat;
 import androidx.legacy.content.WakefulBroadcastReceiver;
 
 import org.microg.gms.common.ForegroundServiceContext;
@@ -32,7 +32,6 @@ import org.microg.gms.common.ForegroundServiceContext;
 import static android.app.PendingIntent.FLAG_UPDATE_CURRENT;
 import static android.net.NetworkCapabilities.NET_CAPABILITY_INTERNET;
 import static android.os.Build.VERSION.SDK_INT;
-import static android.provider.Settings.Global.DEVICE_PROVISIONED;
 import static org.microg.gms.checkin.CheckinService.EXTRA_FORCE_CHECKIN;
 import static org.microg.gms.checkin.CheckinService.REGULAR_CHECKIN_INTERVAL;
 
@@ -45,12 +44,7 @@ public class TriggerReceiver extends WakefulBroadcastReceiver {
         try {
             boolean force = "android.provider.Telephony.SECRET_CODE".equals(intent.getAction());
 
-            if (!isProvisioned(context)) {
-                Log.d(TAG, "Ignoring " + intent + ": device not provisioned");
-                return;
-            }
-
-            if (CheckinPrefs.isEnabled(context) || force) {
+            if (CheckinPreferences.isEnabled(context) || force) {
                 if (LastCheckinInfo.read(context).getLastCheckin() > System.currentTimeMillis() - REGULAR_CHECKIN_INTERVAL && !force) {
                     CheckinService.schedule(context);
                     return;
@@ -68,7 +62,7 @@ public class TriggerReceiver extends WakefulBroadcastReceiver {
                             .addCapability(NET_CAPABILITY_INTERNET)
                             .build();
                     Intent i = new Intent(context, TriggerReceiver.class);
-                    PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 0, i, FLAG_UPDATE_CURRENT);
+                    PendingIntent pendingIntent = PendingIntentCompat.getBroadcast(context, 0, i, FLAG_UPDATE_CURRENT, true);
                     cm.registerNetworkCallback(networkRequest, pendingIntent);
                 }
             } else {
@@ -78,15 +72,4 @@ public class TriggerReceiver extends WakefulBroadcastReceiver {
             Log.w(TAG, e);
         }
     }
-
-    private boolean isProvisioned(Context context) {
-        try {
-            return SDK_INT < 17 ||
-                    Settings.Global.getInt(context.getContentResolver(), DEVICE_PROVISIONED) == 1;
-        } catch (Settings.SettingNotFoundException e) {
-            Log.w(TAG, "Error getting DEVICE_PROVISIONED setting", e);
-            return true;
-        }
-    }
-
 }

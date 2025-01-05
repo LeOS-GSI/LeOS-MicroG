@@ -21,7 +21,6 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.MatrixCursor;
 import android.net.Uri;
-import android.os.Build;
 import android.util.Log;
 
 import java.util.HashMap;
@@ -29,6 +28,8 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+
+import static android.os.Build.VERSION.SDK_INT;
 
 /**
  * Originally found in Google Services Framework (com.google.android.gsf), this provides a generic
@@ -56,7 +57,7 @@ public class GServicesProvider extends ContentProvider {
     }
 
     private String getCallingPackageName() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+        if (SDK_INT >= 19) {
             return getCallingPackage();
         } else {
             return "unknown";
@@ -76,7 +77,6 @@ public class GServicesProvider extends ContentProvider {
                 for (String name : cache.keySet()) {
                     if (name.startsWith(prefix)) {
                         String value = cache.get(name);
-                        Log.d(TAG, "query caller=" + getCallingPackageName() + " prefix=" + prefix + " name=" + name + " value=" + value);
                         cursor.addRow(new String[]{name, value});
                     }
                 }
@@ -90,7 +90,6 @@ public class GServicesProvider extends ContentProvider {
                     value = databaseHelper.get(name);
                     cache.put(name, value);
                 }
-                Log.d(TAG, "query caller=" + getCallingPackageName() + " name=" + name + " value=" + value);
                 if (value != null) {
                     cursor.addRow(new String[]{name, value});
                 }

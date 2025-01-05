@@ -17,6 +17,7 @@
 package org.microg.gms.auth.login;
 
 import android.accounts.Account;
+import android.accounts.AccountAuthenticatorResponse;
 import android.accounts.AccountManager;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
@@ -42,7 +43,6 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import androidx.annotation.StringRes;
-import androidx.core.app.OnNewIntentProvider;
 import androidx.webkit.WebViewClientCompat;
 
 import com.google.android.gms.R;
@@ -56,14 +56,12 @@ import org.microg.gms.checkin.CheckinManager;
 import org.microg.gms.checkin.LastCheckinInfo;
 import org.microg.gms.common.HttpFormClient;
 import org.microg.gms.common.Utils;
-import org.microg.gms.droidguard.core.DroidGuardResultCreator;
 import org.microg.gms.people.PeopleManager;
 import org.microg.gms.profile.Build;
 import org.microg.gms.profile.ProfileManager;
 
 import java.io.IOException;
 import java.security.MessageDigest;
-import java.util.Collections;
 import java.util.Locale;
 
 import static android.accounts.AccountManager.PACKAGE_NAME_KEY_LEGACY_NOT_VISIBLE;
@@ -80,6 +78,7 @@ import static android.view.inputmethod.InputMethodManager.SHOW_IMPLICIT;
 import static org.microg.gms.auth.AuthPrefs.isAuthVisible;
 import static org.microg.gms.common.Constants.GMS_PACKAGE_NAME;
 import static org.microg.gms.common.Constants.GMS_VERSION_CODE;
+import static org.microg.gms.common.Constants.VENDING_PACKAGE_NAME;
 
 public class LoginActivity extends AssistantActivity {
     public static final String TMPL_NEW_ACCOUNT = "new_account";
@@ -94,6 +93,8 @@ public class LoginActivity extends AssistantActivity {
     private static final String GOOGLE_SUITE_URL = "https://accounts.google.com/signin/continue";
     private static final String MAGIC_USER_AGENT = " MinuteMaid";
     private static final String COOKIE_OAUTH_TOKEN = "oauth_token";
+    private static final String ACTION_UPDATE_ACCOUNT = "com.google.android.gms.auth.GOOGLE_ACCOUNT_CHANGE";
+    private static final String PERMISSION_UPDATE_ACCOUNT = "com.google.android.gms.auth.permission.GOOGLE_ACCOUNT_CHANGE";
 
     private final FidoHandler fidoHandler = new FidoHandler(this);
     private final DroidGuardHandler dgHandler = new DroidGuardHandler(this);
@@ -101,6 +102,7 @@ public class LoginActivity extends AssistantActivity {
     private WebView webView;
     private String accountType;
     private AccountManager accountManager;
+    private AccountAuthenticatorResponse response;
     private InputMethodManager inputMethodManager;
     private ViewGroup authContent;
     private int state = 0;
@@ -140,6 +142,12 @@ public class LoginActivity extends AssistantActivity {
                     closeWeb(true);
             }
         });
+        if(getIntent().hasExtra(AccountManager.KEY_ACCOUNT_AUTHENTICATOR_RESPONSE)){
+            Object tempObject = getIntent().getExtras().get(AccountManager.KEY_ACCOUNT_AUTHENTICATOR_RESPONSE);
+            if (tempObject instanceof AccountAuthenticatorResponse) {
+                response = (AccountAuthenticatorResponse) tempObject;
+            }
+        }
         if (getIntent().hasExtra(EXTRA_TOKEN)) {
             if (getIntent().hasExtra(EXTRA_EMAIL)) {
                 AccountManager accountManager = AccountManager.get(this);
@@ -168,8 +176,7 @@ public class LoginActivity extends AssistantActivity {
         if (state == 1) {
             init();
         } else if (state == -1) {
-            setResult(RESULT_CANCELED);
-            finish();
+            loginCanceled();
         }
     }
 
@@ -178,8 +185,23 @@ public class LoginActivity extends AssistantActivity {
         super.onBackButtonClicked();
         state--;
         if (state == -1) {
-            finish();
+            loginCanceled();
         }
+    }
+
+    public void loginCanceled() {
+        Log.d(TAG, "loginCanceled: ");
+        setResult(RESULT_CANCELED);
+        if (response != null) {
+            response.onError(AccountManager.ERROR_CODE_CANCELED, "Canceled");
+        }
+        if (SDK_INT >= LOLLIPOP) { finishAndRemoveTask(); } else finish();
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        loginCanceled();
     }
 
     private void init() {
@@ -332,7 +354,19 @@ public class LoginActivity extends AssistantActivity {
                     }
                 });
     }
-
+    private void returnSuccessResponse(Account account){
+        if(response != null){
+            Bundle bd = new Bundle();
+            bd.putString(AccountManager.KEY_ACCOUNT_NAME,account.name);
+            bd.putBoolean("new_account_created",false);
+            bd.putString(AccountManager.KEY_ACCOUNT_TYPE,accountType);
+            response.onResult(bd);
+        }
+        Intent intent = new Intent(ACTION_UPDATE_ACCOUNT);
+        intent.setPackage(VENDING_PACKAGE_NAME);
+        intent.putExtra(AccountManager.KEY_ACCOUNT_NAME, account.name);
+        sendBroadcast(intent, PERMISSION_UPDATE_ACCOUNT);
+    }
     private void retrieveGmsToken(final Account account) {
         final AuthManager authManager = new AuthManager(this, account.name, GMS_PACKAGE_NAME, "ac2dm");
         authManager.setPermitted(true);
@@ -342,8 +376,8 @@ public class LoginActivity extends AssistantActivity {
                 .service(authManager.getService())
                 .email(account.name)
                 .token(AccountManager.get(this).getPassword(account))
-                .systemPartition()
-                .hasPermission()
+                .systemPartition(true)
+                .hasPermission(true)
                 .addAccount()
                 .getAccountId()
                 .getResponseAsync(new HttpFormClient.Callback<AuthResponse>() {
@@ -353,8 +387,12 @@ public class LoginActivity extends AssistantActivity {
                         String accountId = PeopleManager.loadUserInfo(LoginActivity.this, account);
                         if (!TextUtils.isEmpty(accountId))
                             accountManager.setUserData(account, "GoogleUserId", accountId);
+                        if (isAuthVisible(LoginActivity.this) && SDK_INT >= 26) {
+                            accountManager.setAccountVisibility(account, PACKAGE_NAME_KEY_LEGACY_NOT_VISIBLE, VISIBILITY_USER_MANAGED_VISIBLE);
+                        }
                         checkin(true);
-                        finish();
+                        returnSuccessResponse(account);
+                        if (SDK_INT >= LOLLIPOP) { finishAndRemoveTask(); } else finish();
                     }
 
                     @Override
@@ -640,7 +678,7 @@ public class LoginActivity extends AssistantActivity {
         @JavascriptInterface
         public final void skipLogin() {
             Log.d(TAG, "JSBridge: skipLogin");
-            finish();
+            loginCanceled();
         }
 
         @JavascriptInterface

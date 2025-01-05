@@ -30,6 +30,7 @@ import android.os.RemoteException;
 import android.os.ResultReceiver;
 import android.util.Log;
 
+import androidx.core.app.PendingIntentCompat;
 import androidx.legacy.content.WakefulBroadcastReceiver;
 
 import com.google.android.gms.R;
@@ -41,7 +42,7 @@ import org.microg.gms.common.ForegroundServiceContext;
 import org.microg.gms.gcm.McsService;
 import org.microg.gms.people.PeopleManager;
 
-@ForegroundServiceInfo(value = "Google device registration", res = R.string.service_name_checkin)
+@ForegroundServiceInfo(value = "Google device registration", resName = "service_name_checkin", resPackage = "com.google.android.gms")
 public class CheckinService extends IntentService {
     private static final String TAG = "GmsCheckinSvc";
     public static final long MAX_VALID_CHECKIN_AGE = 24 * 60 * 60 * 1000; // 12 hours
@@ -80,7 +81,7 @@ public class CheckinService extends IntentService {
     protected void onHandleIntent(Intent intent) {
         try {
             ForegroundServiceContext.completeForegroundService(this, intent, TAG);
-            if (CheckinPrefs.isEnabled(this)) {
+            if (CheckinPreferences.isEnabled(this)) {
                 LastCheckinInfo info = CheckinManager.checkin(this, intent.getBooleanExtra(EXTRA_FORCE_CHECKIN, false));
                 if (info != null) {
                     Log.d(TAG, "Checked in as " + Long.toHexString(info.getAndroidId()));
@@ -124,7 +125,7 @@ public class CheckinService extends IntentService {
 
     static void schedule(Context context) {
         AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-        PendingIntent pendingIntent = PendingIntent.getService(context, TriggerReceiver.class.getName().hashCode(), new Intent(context, TriggerReceiver.class), PendingIntent.FLAG_ONE_SHOT | PendingIntent.FLAG_UPDATE_CURRENT);
+        PendingIntent pendingIntent = PendingIntentCompat.getService(context, TriggerReceiver.class.getName().hashCode(), new Intent(context, TriggerReceiver.class), PendingIntent.FLAG_ONE_SHOT | PendingIntent.FLAG_UPDATE_CURRENT, false);
         alarmManager.set(AlarmManager.RTC, Math.max(LastCheckinInfo.read(context).getLastCheckin() + REGULAR_CHECKIN_INTERVAL, System.currentTimeMillis() + BACKUP_CHECKIN_DELAY), pendingIntent);
     }
 }
